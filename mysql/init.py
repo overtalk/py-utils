@@ -91,13 +91,18 @@ class MySQL:
             cursor.close()
 
 
-config = Config(user='root', password='12345678', db='gp_oj')
-mysql = MySQL(c=config)
-mysql.version()
-mysql.insert()
-mysql.query()
-mysql.delete()
-mysql.query()
-mysql.close()
+def main():
+    config = Config(user='root', password='12345678', db='gp_oj')
+    mysql = MySQL(c=config)
+    mysql.version()
+    mysql.insert()
+    mysql.query()
+    mysql.delete()
+    mysql.query()
+    mysql.close()
+
+
+if __name__ == '__main__':
+    main()
 
 
