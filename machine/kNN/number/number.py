@@ -1,48 +1,66 @@
-import sys
-sys.path.append('..')
 from numpy import *
-from os import listdir
-from dating.demo import classify
+import operator
+import os
 
 
-def img2vector(file_name: str):
-    return_vect = zeros((1, 1024))
-    f = open(file_name)
-    for i in range(32):
-        lint_str = f.readline()
-        for j in range(32):
-            return_vect[0, 32*i+j] = int(lint_str[j])
-    return return_vect
+def classify(inX, data_set, data_labels, k):
+    # m 表示样本数量
+    m = data_set.shape[0]
+    mat_diff = data_set - tile(inX, [m, 1])
+    sorted_distances = (((mat_diff**2).sum(axis=1))**0.5).argsort()
+    label_count = {}
+    for i in range(k):
+        label = data_labels[sorted_distances[i]]
+        label_count[label] = label_count.get(label, 0) + 1
+    sorted_class_count = sorted(label_count.items(),
+                                key=operator.itemgetter(1), reverse=True)
+    return sorted_class_count[0][0]
 
 
-def hand_write_class_test():
-    hw_labels = []
+def txt2array(filepath: str):
+    return_array = zeros((1, 1024))
+    f = open(filepath)
+    lines = f.readlines()
+    lines_count = len(lines)
+
+    for i in range(lines_count):
+        for j in range(lines_count):
+            return_array[0, i*32+j] = int(lines[i][j])
+    return return_array
+
+
+def date_test():
+    test_path = 'testDigits'
+    train_path = 'trainingDigits'
+
     # train
-    train_file_list = listdir('digits/trainingDigits')
-    m = len(train_file_list)
-    train_mat = zeros((m, 1024))
+    train_files = os.listdir(train_path)
+    m = len(train_files)
+    # 定义labels，matrix
+    train_labels = []
+    train_matrix = zeros((m, 1024))
+    # 读取文件
     for i in range(m):
-        file_name_str = train_file_list[i]
-        file_str = file_name_str.split('_')[0]
-        class_num_str = int(file_name_str.split('_')[0])
-        hw_labels.append(class_num_str)
-        train_mat[i, :] = img2vector('digits/trainingDigits/%s' % file_name_str)
+        file_name = train_files[i]
+        train_labels.append(int(file_name.split('_')[0]))
+        train_matrix[i, :] = txt2array(train_path + "/" + file_name)
+
     # test
-    test_file_list = listdir('digits/testDigits')
-    m_test = len(test_file_list)
-    error_num = 0.0
-    for i in range(m_test):
-        file_name_str = test_file_list[i]
-        file_str = file_name_str.split('_')[0]
-        class_num_str = int(file_name_str.split('_')[0])
-        test_mat = img2vector('digits/testDigits/%s' % file_name_str)
-        classify_result = classify(test_mat, train_mat, hw_labels, 3)
-        print("classify result come back with %d, the real answer is %d, [%d]"
-              % (classify_result, class_num_str, classify_result is class_num_str))
-        if classify_result is not class_num_str:
-            error_num += 1.0
-    print("total error rate is %f" % (error_num / m_test))
+    text_files = os.listdir(test_path)
+    m = len(text_files)
+    error_count = 0.0
+    # 读取文件
+    for i in range(m):
+        file_name = text_files[i]
+        text_label = int(file_name.split('_')[0])
+        text_matrix = txt2array(test_path + "/" + file_name)
+        classify_result = classify(text_matrix, train_matrix, train_labels, 3)
+        is_expected = classify_result is text_label
+        if not is_expected:
+            error_count += 1.0
+        print("classify result is %d, real result is %d --- [%d]" % (classify_result, text_label, is_expected))
+    print("total error rate is %f" % (error_count / m))
 
 
 if __name__ == "__main__":
-    hand_write_class_test()
+    date_test()
