@@ -1,9 +1,10 @@
 from numpy import *
 # matplotlib 是python的画图库
 import matplotlib.pyplot as plt
+from demo import classify
 
 
-def file2matrix(filepath="datingTestSet2.txt"):
+def file2matrix(filepath: str ="datingTestSet2.txt"):
     f = open(filepath)
     lines = f.readlines()
     number_of_lines = len(lines)
@@ -31,5 +32,32 @@ def show_table():
     plt.show()
 
 
+def auto_norm(data_set: asmatrix):
+    min_val = data_set.min(0)
+    max_val = data_set.max(0)
+    val_range = max_val - min_val
+    normal_data_set = zeros(shape(data_set))
+    m = data_set.shape[0]
+    normal_data_set = data_set - tile(min_val, (m, 1))
+    normal_data_set = normal_data_set/tile(val_range, (m, 1))
+    return normal_data_set, val_range, min_val
+
+
+def dating_class_test():
+    ho_ratio = 0.10
+    dating_mat, dating_labels = file2matrix()
+    normal_data_set, val_range, min_val = auto_norm(dating_mat)
+    m = normal_data_set.shape[0]
+    num_test_vecs = int(m * ho_ratio)
+    error_count = 0.0
+    for i in range(num_test_vecs):
+        classify_result = classify(normal_data_set[i, :], normal_data_set[num_test_vecs: m, :],
+                 dating_labels[num_test_vecs:m], 3)
+        print("the classify result come back with %d, the real result is %d --- %d"
+              % (classify_result, dating_labels[i], classify_result is not dating_labels[i]))
+        if classify_result is not dating_labels[i]: error_count += 1.0
+    print("total error rate is %f" % (error_count/num_test_vecs))
+
+
 if __name__ == "__main__":
-    show_table()
+    dating_class_test()

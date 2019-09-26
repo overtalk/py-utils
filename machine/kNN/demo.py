@@ -36,6 +36,6 @@ def classify(in_x: list, data_set: mat, labels: list, k: int):
                                 key=operator.itemgetter(1), reverse=True)
     return sorted_class_count[0][0]
 
-
-if __name__ == '__main__':
-    main()
+#
+# if __name__ == '__main__':
+#     main()
